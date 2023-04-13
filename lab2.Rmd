@@ -1,0 +1,6 @@
+---
+title: "lab2"
+author: "Gavin Martinez"
+date: "2023-04-13"
+output: html_document
+---
