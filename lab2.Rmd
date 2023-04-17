@@ -7,6 +7,8 @@ output: html_document
 
 ## Part 1: Identifying Bad Visualizations
 
+### Dissecting a Bad Visualization
+
 1.  While there are certainly issues with this image, do your best to tell the story of this graph in words. That is, what is this graph telling you? What do you think the authors meant to convey with it?
 
     **The graph is trying to show the percentage of people that believe vaccines are safe. Each facet is a region. Each point within a region represents a country within that region. The x-axis represents percentage points, and the bold vertical line for each region is the median percentage of citizens that believe vaccines are safe. The authors most likely meant to convey the difference in the variability of vaccine acceptance from region to region as well as variability from country to country within the region. There seemed to be an attempt to convey something by making each region its own pane, but it is not quite clear what that is by looking at the plot.**
@@ -31,4 +33,15 @@ output: html_document
 
     -   **no meaningful y-axis**
 
-    -   
+    -   **redundant legend**
+
+    -   **crowded visualizations**
+
+### Improving the Bad Visualization
+
+```{r data and libraries}
+library(tidyverse)
+library(here)
+
+vac <- read_csv(here('vaccines.csv'))
+```
