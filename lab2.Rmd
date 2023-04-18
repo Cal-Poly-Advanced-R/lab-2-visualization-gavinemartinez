@@ -119,11 +119,11 @@ data_clean_geo <- data_clean |> #Getting Geocode data for each country
   geocode(country = `Country`)
 ```
 
-```{r Leaflet Map}
-data_clean <- data_clean_geo |>
+```{r Leaflet Map} 
+data_clean <- data_clean_geo |> #to limit the number of obs during testing of leaflet
   distinct(Country, Combo, long, lat)
 
-leaflet() |>
+leaflet() |> 
   addTiles() |>
   addCircles(lng = data_clean$long, lat = data_clean$lat, radius = 10, popup = data_clean$Combo)
 
