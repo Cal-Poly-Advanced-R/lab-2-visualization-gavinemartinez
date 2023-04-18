@@ -113,7 +113,7 @@ Bar plot
 It is hard to see which country is overall better or has the highest percentage for each question at first glance.
 
 **6. Improve the visualization above by either re-creating it with the issues you identified fixed OR by creating a new visualization that you believe tells the same story better.**
-```{r libaries}
+```{r libaries2}
 library(tidyverse)
 library(here)
 library(gganimate)
@@ -124,7 +124,7 @@ questions <- data.frame(country = rep(c("World", "Eastern Africa", "Central Afri
                         question = rep(c("Has internet access", "Sought health info & has internet access", "Sought health info & does not have internet access"), times = 19),
                         proportion = c(.54,.52,.28,.24,.56,.35,.27,.60,.40,.48,.47,.23,.46,.43,.34,.34,.46,.29,.55,.52,.34,.91,.74,.38,.62,.51,.33,.55,.42,.34,.67,.51,.3,.46,.46,.27,.25,.35,.22,.72,.58,.38,.74,.47,.33,.91,.59,.38,.82,.61,.47,.9,.63,.51,.93,.66,.31))
 
-questions |>
+questions <- questions %>%
   mutate(rank = rank(-proportion, ties.method = 'random'))
 ```
 
