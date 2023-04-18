@@ -113,6 +113,11 @@ Bar plot
 It is hard to see which country is overall better or has the highest percentage for each question at first glance.
 
 **6. Improve the visualization above by either re-creating it with the issues you identified fixed OR by creating a new visualization that you believe tells the same story better.**
+```{r libaries}
+library(tidyverse)
+library(here)
+library(gganimate)
+```
 
 ```{r data}
 questions <- data.frame(country = rep(c("World", "Eastern Africa", "Central Africa", "North Africa", "Southern Africa", "Western Africa", "Central America & Mexico", "Northern America", "South America", "Central Asia", "East Asia", "Southeast Asia", "South Asia", "Middle East", "Eastern Europe", "Northern Europe", "Southern Europe", "Western Europe", "AUS & NZ"), each = 3),
