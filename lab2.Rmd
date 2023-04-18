@@ -44,10 +44,14 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 library(tidyverse)
 library(readxl)
 library(ggthemes)
+library(tidygeocoder)
+library(leaflet)
+library(readxl)
+library(gganimate)
 ```
 
 ```{r readxl}
-df_world <- read_excel(here::here("wgm2018-dataset-crosstabs-all-countries.xlsx"), sheet = 2)
+df_world <- read_xlsx(here::here("wgm2018-dataset-crosstabs-all-countries.xlsx"), sheet = 2)
 ```
 
 ```{r head}
@@ -87,19 +91,15 @@ ggplot(plt, aes(x = prop, y = region, fill = region)) +
   theme(legend.position = "none") 
 ```
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
-```
-
 ### Lab 2 Part 2: Second Data Visualization Improvement
 
 **1. Select a data visualization in the report that you think could be improved. Be sure to cite both the page number and figure title. Do your best to tell the story of this graph in words. That is, what is this graph telling you? What do you think the authors meant to convey with it?**
 
-*The plot that I think could be improved is th eon titled "People seeking science information by region and internet access" on page 37. The graph is trying to show the proportion of citizens in each country surveyed that has responded yes to whether they have internet access, sought science information and have internet access, or sought science information and does not have internet access. It seems the authors meant to highlight the difference in internet access and willingness to search the internet from country to country.*
+The plot that I think could be improved is th eon titled "People seeking science information by region and internet access" on page 37. The graph is trying to show the proportion of citizens in each country surveyed that has responded yes to whether they have internet access, sought science information and have internet access, or sought science information and does not have internet access. It seems the authors meant to highlight the difference in internet access and willingness to search the internet from country to country.
 
 **2. List the variables that appear to be displayed in this visualization.**
 
-*The variables that are displayed are country, and percentage of citizens within each country that answered yes for each of the three respective questions.*
+The variables that are displayed are country, and percentage of citizens within each country that answered yes for each of the three respective questions.
 
 **3. Now that you're versed in the grammar of graphics (ggplot), list the aesthetics used and which variables are specified for each.**
 
@@ -124,7 +124,7 @@ questions <- data.frame(country = rep(c("World", "Eastern Africa", "Central Afri
                         question = rep(c("Has internet access", "Sought health info & has internet access", "Sought health info & does not have internet access"), times = 19),
                         proportion = c(.54,.52,.28,.24,.56,.35,.27,.60,.40,.48,.47,.23,.46,.43,.34,.34,.46,.29,.55,.52,.34,.91,.74,.38,.62,.51,.33,.55,.42,.34,.67,.51,.3,.46,.46,.27,.25,.35,.22,.72,.58,.38,.74,.47,.33,.91,.59,.38,.82,.61,.47,.9,.63,.51,.93,.66,.31))
 
-questions %<>%
+questions |>
   mutate(rank = rank(-proportion, ties.method = 'random'))
 ```
 
@@ -166,9 +166,6 @@ animate(anim, 200, fps =5, width = 1200, height = 1000)
 ```
 ### Lab 2 Part 2 - Third Data Visualization Improvement
 
-#THIS IS NILS's NOT DONE 
-
-
 1. Select a data visualization in the report that you think could be improved. Be sure to cite both the page number and figure title. Do your best to tell the story of this graph in words. That is, what is this graph telling you? What do you think the authors meant to convey with it?
 
  *Chart 4.5: The combined view of how people feel about the benefits of science on a personal and country level, Page 84* 
@@ -202,18 +199,11 @@ This graph visually looks like a simple correlogram/bubble plot however represen
 
 6. Improve the visualization above by either re-creating it with the issues you identified fixed OR by creating a new visualization that you believe tells the same story better.
 
-```{r Load Libraries}
-library(tidyverse)
-library(leaflet)
-library(here)
-library(readxl)
-library(tidygeocoder)
-```
-
 ```{r Data Cleaning}
-countries <- c("United States", "Egypt", "Morocco", "Lebanon", "Saudi Arabia", "Jordan", "Turkey", "Pakistan", "Indonesia", "Bangladesh", "United Kingdom", "France", "Germany", "Netherlands", "Belgium", "Spain", "Italy", "Poland", "Hungary", "Czech Republic", "Romania", "Sweden", "Greece", "Denmark", "Iran", "Singapore", "Japan", "China", "India", "Venezuela", "Brazil", "Mexico", "Nigeria", "Kenya", "Tanzania", "Israel", "Palestinian Territories", "Ghana", "Uganda", "Benin", "Madagascar", "Malawi", "South Africa", "Canada", "Australia", "Philippines", "Sri Lanka", "Vietnam", "Thailand", "Cambodia", "Laos", "Myanmar", "New Zealand", "Botswana", "Ethiopia", "Mali", "Mauritania", "Mozambique", "Niger", "Rwanda", "Senegal", "Zambia", "South Korea", "Taiwan", "Afghanistan", "Belarus", "Georgia", "Kazakhstan", "Kyrgyzstan", "Moldova", "Russia", "Ukraine", "Burkina Faso", "Cameroon", "Sierra Leone", "Zimbabwe", "Costa Rica", "Albania", "Algeria", "Argentina", "Armenia", "Austria", "Azerbaijan", "Bolivia", "Bosnia and Herzegovina", "Bulgaria", "Burundi", "Chad", "Chile", "Colombia", "Comoros", "Republic of Congo", "Croatia", "Cyprus", "Dominican Republic", "Ecuador", "El Salvador", "Estonia", "Finland", "Gabon", "Guatemala", "Guinea", "Haiti", "Honduras", "Iceland", "Iraq", "Ireland", "Ivory Coast", "Kuwait", "Latvia", "Liberia", "Libya", "Lithuania", "Luxembourg", "Macedonia", "Malaysia", "Malta", "Mauritius", "Mongolia", "Montenegro", "Namibia", "Nepal", "Nicaragua", "Norway", "Panama", "Paraguay", "Peru", "Portugal", "Serbia", "Slovakia", "Slovenia", "Eswatini", "Switzerland", "Tajikistan", "The Gambia", "Togo", "Tunisia", "Turkmenistan", "United Arab Emirates", "Uruguay", "Uzbekistan", "Yemen", "Kosovo", "Northern Cyprus") #Chat GPT took the list from excel and made it a comma separated list, all hail Chat GPT
+countries <- c("United States", "Egypt", "Morocco", "Lebanon", "Saudi Arabia", "Jordan", "Turkey", "Pakistan", "Indonesia", "Bangladesh", "United Kingdom", "France", "Germany", "Netherlands", "Belgium", "Spain", "Italy", "Poland", "Hungary", "Czech Republic", "Romania", "Sweden", "Greece", "Denmark", "Iran", "Singapore", "Japan", "China", "India", "Venezuela", "Brazil", "Mexico", "Nigeria", "Kenya", "Tanzania", "Israel", "Palestinian Territories", "Ghana", "Uganda", "Benin", "Madagascar", "Malawi", "South Africa", "Canada", "Australia", "Philippines", "Sri Lanka", "Vietnam", "Thailand", "Cambodia", "Laos", "Myanmar", "New Zealand", "Botswana", "Ethiopia", "Mali", "Mauritania", "Mozambique", "Niger", "Rwanda", "Senegal", "Zambia", "South Korea", "Taiwan", "Afghanistan", "Belarus", "Georgia", "Kazakhstan", "Kyrgyzstan", "Moldova", "Russia", "Ukraine", "Burkina Faso", "Cameroon", "Sierra Leone", "Zimbabwe", "Costa Rica", "Albania", "Algeria", "Argentina", "Armenia", "Austria", "Azerbaijan", "Bolivia", "Bosnia and Herzegovina", "Bulgaria", "Burundi", "Chad", "Chile", "Colombia", "Comoros", "Republic of Congo", "Croatia", "Cyprus", "Dominican Republic", "Ecuador", "El Salvador", "Estonia", "Finland", "Gabon", "Guatemala", "Guinea", "Haiti", "Honduras", "Iceland", "Iraq", "Ireland", "Ivory Coast", "Kuwait", "Latvia", "Liberia", "Libya", "Lithuania", "Luxembourg", "Macedonia", "Malaysia", "Malta", "Mauritius", "Mongolia", "Montenegro", "Namibia", "Nepal", "Nicaragua", "Norway", "Panama", "Paraguay", "Peru", "Portugal", "Serbia", "Slovakia", "Slovenia", "Eswatini", "Switzerland", "Tajikistan", "The Gambia", "Togo", "Tunisia", "Turkmenistan", "United Arab Emirates", "Uruguay", "Uzbekistan", "Yemen", "Kosovo", "Northern Cyprus")
+#Chat GPT took the list from excel and made it a comma separated list, all hail Chat GPT
 
-data_og <- read_xlsx("wgm_data2018.xlsx", sheet = 2) #renamed data set in my files
+data_og <- read_xlsx(here::here("wgm2018-dataset-crosstabs-all-countries.xlsx"), sheet = 2)
 
 #Question 1: In general, do you think the work that scientists do benefits most, some, or very few people in this country?
 #Question 2: In general, do you think the work that scientists do benefits people like you in this country?
@@ -248,34 +238,35 @@ data_clean <- data_clean |> #importing country names and adding the combo column
 
 ```{r Applying Geocode to each country}
 data_clean_geo <- data_clean |> #Getting Geocode data for each country
-  geocode(country = `Country`)
+  geocode(country = `Country`) |>
+  na.omit()
 ```
 
 ```{r Leaflet Map}
 leaflet() |>
   addTiles() |>
-  addCircles(lng = data_clean$long, 
-             lat = data_clean$lat, 
-             radius = length(data_clean$Combo[data_clean$Combo %in% "Benefits Them & Most"]),
-             popup = data_clean$Combo[data_clean$Combo %in% "Benefits Them & Most"], 
+  addCircles(lng = data_clean_geo$long, 
+             lat = data_clean_geo$lat, 
+             radius = length(data_clean_geo$Combo[data_clean_geo$Combo %in% "Benefits Them & Most"]),
+             popup = data_clean_geo$Combo[data_clean_geo$Combo %in% "Benefits Them & Most"], 
              color = "#FFCD27", 
              opacity = .5) |>
-  addCircles(lng = data_clean$long, 
-             lat = data_clean$lat, 
-             radius = length(data_clean$Combo[data_clean$Combo %in% "Benefits Them But Not Most"]),
-             popup = data_clean$Combo[data_clean$Combo %in% "Benefits Them But Not Most"], 
+  addCircles(lng = data_clean_geo$long, 
+             lat = data_clean_geo$lat, 
+             radius = length(data_clean_geo$Combo[data_clean_geo$Combo %in% "Benefits Them But Not Most"]),
+             popup = data_clean_geo$Combo[data_clean_geo$Combo %in% "Benefits Them But Not Most"], 
              color = "#61933F", 
              opacity = .5) |>
-  addCircles(lng = data_clean$long, 
-             lat = data_clean$lat, 
-             radius = length(data_clean$Combo[data_clean$Combo %in% "Doesn't Benefit Them But Benefits Most"]),
-             popup = data_clean$Combo[data_clean$Combo %in% "Doesn't Benefit Them But Benefits Most"], 
+  addCircles(lng = data_clean_geo$long, 
+             lat = data_clean_geo$lat, 
+             radius = length(data_clean_geo$Combo[data_clean_geo$Combo %in% "Doesn't Benefit Them But Benefits Most"]),
+             popup = data_clean_geo$Combo[data_clean_geo$Combo %in% "Doesn't Benefit Them But Benefits Most"], 
              color = "#2FC1D2",
              opacity = .5) |>
-  addCircles(lng = data_clean$long, 
-             lat = data_clean$lat, 
-             radius = length(data_clean$Combo[data_clean$Combo %in% "Doesn't Benefit Them Nor Most"]) ,
-             popup = data_clean$Combo[data_clean$Combo %in% "Doesn't Benefit Them Nor Most"], 
+  addCircles(lng = data_clean_geo$long, 
+             lat = data_clean_geo$lat, 
+             radius = length(data_clean_geo$Combo[data_clean_geo$Combo %in% "Doesn't Benefit Them Nor Most"]) ,
+             popup = data_clean_geo$Combo[data_clean_geo$Combo %in% "Doesn't Benefit Them Nor Most"], 
              color = "#003D57", 
              opacity = .5) |>
   addLegend(position = "topright", title = "The combined view of how people feel about the benefits
