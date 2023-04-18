@@ -1,6 +1,6 @@
 ---
 title: "Lab 2 Advanced Data Visualization"
-author: "Gavin Martinez, Brandon Kim"
+author: "Gavin Martinez, Brandon Kim, Nils Berzins, Shreya Ravilla"
 date: "2023-04-13"
 output: html_document
 ---
