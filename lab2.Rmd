@@ -1,71 +1,84 @@
 ---
 title: "Lab 2 Advanced Data Visualization"
-author: "Gavin Martinez"
+author: "Gavin Martinez, Brandon Kim"
 date: "2023-04-13"
 output: html_document
 ---
 
-## Part 1: Identifying Bad Visualizations
+**1. While there are certainly issues with this image, do your best to tell the story of this graph in words. That is, what is this graph telling you? What do you think the authors meant to convey with it?**
 
-### Dissecting a Bad Visualization
+The graph seems to show a plot of proportions of people who believe vaccines are safe per country. And each the plot seems to be separated by region, with certain countries being labeled. For each plot, there is a line within the plots, showing the median per each region. 
 
-1.  While there are certainly issues with this image, do your best to tell the story of this graph in words. That is, what is this graph telling you? What do you think the authors meant to convey with it?
+**2. List the variables that appear to be displayed in this visualization.**
 
-    **The graph is trying to show the percentage of people that believe vaccines are safe. Each facet is a region. Each point within a region represents a country within that region. The x-axis represents percentage points, and the bold vertical line for each region is the median percentage of citizens that believe vaccines are safe. The authors most likely meant to convey the difference in the variability of vaccine acceptance from region to region as well as variability from country to country within the region. There seemed to be an attempt to convey something by making each region its own pane, but it is not quite clear what that is by looking at the plot.**
+The variables in this visualization are countries, region of that country, and % of people who believe vaccines are safe per country.
 
-2.  List the variables that appear to be displayed in this visualization.
+**3. Now that you're versed in the grammar of graphics (ggplot), list the aesthetics used and which variables are specified for each.**
 
-    **The variables that appear to be displayed in this visualization are region, country, percentage of citizens within each country that believe vaccines are safe, and median percentage of citizens that believe vaccines are safe among countries within a given region.**
+The different regions are separated by the color of the points. Some of the countries are labeled. And the median of % of people who believe vaccines are safe per region is represented by a line within the plots.  
 
-3.  Now that you're versed in the grammar of graphics (ggplot), list the aesthetics used and which variables are specified for each.
+**4.  What type of graph would you call this?**
 
-    **x = percentage of citizens within each country that believe vaccines are safe.**
+This wouldn't really be a scatter plot, as scatter plots take quantitative variables for both x and y. I would call this a segmented bar plot with points instead of bars. Each point represents a quantitative value for each country, which is what a bar plot should do. An argument could also be made that this visualization is multiple box plots, where we are creating box plots for each region. As the median is represented like a boxplot, and we have a decent tell of the spread. The only issue is, there are no boxes.  
 
-    **y = index of country**
+**5.  List all of the problems or things you would improve about this graph.**
 
-    **fill = region**
+* No need for axis labels on both the top and bottom.
+* y-axis really doesn't represent anything, so there's no need for increasing heights within each region.
+* Really weird choice of graph in general. Something like this would be better represented by a box plot.
+* Double labeling of colors; no need of a legend.
+* Grid lines look off. They should be connecting between each section.
 
-4.  What type of graph would you call this?
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
 
-    **I would call this a faceted scatter plot by region of percentage of citizens within each country that believe vaccines are safe by their sorted index.**
-
-5.  List all of the problems or things you would improve about this graph.
-
-    -   **no meaningful y-axis**
-
-    -   **redundant legend**
-
-    -   **crowded visualizations**
-
-### Improving the Bad Visualization
-
-```{r data and libraries}
+```{r libaries}
 library(tidyverse)
-library(here)
-library(magrittr)
-library(gganimate)
-
-vac <- read_csv(here('vaccines.csv'))
+library(readxl)
+library(ggthemes)
 ```
 
-```{r}
-vac %<>%
-  mutate(country = factor(x = WP5, levels = unique(WP5), labels = c("United States", "Egypt", "Morocco", "Lebanon", "Saudi Arabia", "Jordan", "Turkey", "Pakistan", "Indonesia", "Bangladesh", "United Kingdom", "France", "Germany", "Netherlands", "Belgium", "Spain", "Italy", "Poland", "Hungary", "Czech Republic", "Romania", "Sweden", "Greece", "Denmark", "Iran", "Singapore", "Japan", "China", "India", "Venezuela", "Brazil", "Mexico", "Nigeria", "Kenya", "Tanzania", "Israel", "Palestinian Territories", "Ghana", "Uganda", "Benin", "Madagascar", "Malawi", "South Africa", "Canada", "Australia", "Philippines", "Sri Lanka", "Vietnam", "Thailand", "Cambodia", "Laos", "Myanmar", "New Zealand", "Botswana", "Ethiopia", "Mali", "Mauritania", "Mozambique", "Niger", "Rwanda", "Senegal", "Zambia", "South Korea", "Taiwan", "Afghanistan", "Belarus", "Georgia", "Kazakhstan", "Kyrgyzstan", "Moldova", "Russia", "Ukraine", "Burkina Faso", "Cameroon", "Sierra Leone", "Zimbabwe", "Costa Rica", "Albania", "Algeria", "Argentina", "Armenia", "Austria", "Azerbaijan", "Bolivia", "Bosnia/Herzegovina", "Bulgaria", "Burundi", "Chad", "Chile", "Colombia", "Comoros", "Republic of Congo", "Croatia", "Cyprus", "Dominican Republic", "Ecuador", "El Salvador", "Estonia", "Finland", "Gabon", "Guatemala", "Guinea", "Haiti", "Honduras", "Iceland", "Iraq", "Ireland", "Ivory Coast", "Kuwait", "Latvia", "Liberia", "Libya", "Lithuania", "Luxembourg", "Macedonia", "Malaysia", "Malta", "Mauritius", "Mongolia", "Montenegro", "Namibia", "Nepal", "Nicaragua", "Norway", "Panama", "Paraguay", "Peru", "Portugal", "Serbia", "Slovakia", "Slovenia", "Eswatini", "Switzerland", "Tajikistan", "The Gambia", "Togo", "Tunisia", "Turkmenistan", "United Arab Emirates", "Uruguay", "Uzbekistan", "Yemen", "Kosovo", "Northern Cyprus")),
-         response = ifelse(Q25 %in% c(1:2), "yes", "no"))
-
-vac2 <- vac %>%
-  select(WP5, country, response, Regions_Report) %>%
-  group_by(country) %>% 
-  mutate(Percent = sum(response == "yes")/n(),
-         country = forcats::fct_reorder(country, -Percent))
-  
+```{r readxl}
+df_world <- read_excel(here::here("wgm2018-dataset-crosstabs-all-countries.xlsx"), sheet = 2)
 ```
 
-# Part Two: Broad Visualization Improvement (200 points)
+```{r head}
+head(df_world)
+```
 
-The full Wellcome Global Monitor 2018 report can be found here: [[https://wellcome.ac.uk/sites/default/files/wellcome-global-monitor-2018.pdf](https://wellcome.ac.uk/sites/default/files/wellcome-global-monitor-2018.pdf).](https://wellcome.ac.uk/sites/default/files/wellcome-global-monitor-2018.pdf](https://wellcome.ac.uk/sites/default/files/wellcome-global-monitor-2018.pdf).) Surprisingly, the visualization above does not appear in the report despite the citation in the bottom corner of the image!
+```{r dplyr}
+plt <- df_world %>%
+  filter(Q23 == 1) %>%
+  group_by(WP5) %>%
+  summarize(vacc_agree = sum(Q25 %in% c(1, 2)), 
+            total = n(), 
+            Regions_Report) %>%
+  filter(row_number() == 1,
+         Regions_Report != 0) %>%
+  mutate(prop = vacc_agree/total * 100,
+         region = case_when(
+           Regions_Report %in% c(1, 2, 4, 5) ~ "Sub-Saharan Africa", 
+           Regions_Report %in% c(6:8) ~ "Americas",
+           Regions_Report %in% c(9:12) ~ "Asia",
+           Regions_Report %in% c(3, 13) ~ "Middle East and North Africa",
+           Regions_Report %in% c(14:18) ~ "Europe and Oceania")
+         )
+```
 
-For the work below, you must use leaflet at least once. You must also use one of the other packages mentioned this week. More specifically, you cannot just use ggplot for the remainder of the lab assignment.
+```{r ggplot}
+ggplot(plt, aes(x = prop, y = region, fill = region)) +
+  geom_boxplot() +
+  geom_text(subset(plt, WP5 == 29), 
+            mapping = aes(label = "Japan"),
+            vjust = 2,
+            size = 3) +
+  labs(title = "Boxplots of % of people who believe \nvaccines are safe, \nby global region",
+       x = "Percentages",
+       y = "") +
+  theme_economist() +
+  theme(legend.position = "none") 
+```
 
 **Second Data Visualization Improvement**
 
