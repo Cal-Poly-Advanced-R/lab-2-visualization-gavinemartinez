@@ -1,9 +1,11 @@
 ---
 title: "lab2"
-author: "Gavin Martinez, Brandon Kim"
+author: "Gavin Martinez, Brandon Kim, Shreya Ravilla"
 date: "2023-04-13"
 output: html_document
 ---
+
+## Part 1
 
 **1. While there are certainly issues with this image, do your best to tell the story of this graph in words. That is, what is this graph telling you? What do you think the authors meant to convey with it?**
 
@@ -37,6 +39,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 library(tidyverse)
 library(readxl)
 library(ggthemes)
+library(plotly)
 ```
 
 ```{r readxl}
@@ -79,4 +82,61 @@ ggplot(plt, aes(x = prop, y = region, fill = region)) +
   theme_economist() +
   theme(legend.position = "none") 
 ```
+
+## Part 2
+
+Trust in medical and health advice from government or doctors and nurses by region; p. 72
+```{r}
+med <- tibble(country = toupper(c("World", "Eastern Africa", "Central Africa", "North Africa", "Southern Africa", "Western Africa", "Central America & Mexico", "Northern America", "South America", "Central Asia", "East Asia", "Southeast Asia", "South Asia", "Middle East", "Eastern Europe", "Northern Europe", "Southern Europe", "Western Europe", "Austrailia & New Zealand")),
+              med_workers = c(.84, .83, .57, .79, .69, .78, .8, .92, .74, .88, .82, .84, .87, .82, .81, .93, .91, .95, .97),
+              gov = c(.76, .82, .53, .73, .64, .71, .74, .61, .66, .86, .77, .79, .84, .73, .53, .77, .65, .78, .86))
+               
+```
+
+```{r}
+med <- med |>
+  mutate(med_workers = med_workers * 100,
+         gov = gov * 100)
+
+head(med)
+```
+
+
+```{r}
+med2 <- df_world %>%
+  filter(Q21 == 1 | Q21 == 2,
+         Q22 == 1 | Q22 == 2) %>%
+  group_by(WP5) %>%
+  summarize(gov = sum(Q21 %in% c(1, 2)), 
+            med_workers = sum(Q22 %in% c(1, 2)),
+            Regions_Report)
+
+```
+
+```{r}
+#https://plotly.com/r/bar-charts/
+med$country <- factor(med$country, levels = med[["country"]])
+
+fig <- plot_ly(med, 
+               x = ~country, 
+               y = ~med_workers, 
+               type = 'bar', 
+               name = 'Medical Workers',
+               marker = list(color = "steelblue"))
+
+fig <- fig |>
+  add_trace(y = ~gov, 
+            name = 'Government', 
+            marker = list(color = "orange"))
+
+fig <- fig |> layout(title = "Trust in Medical and Health Advice from Government or Doctors and Nurses by Region",
+                     xaxis = list(title = "Region", 
+                                  tickangle = -45),
+         yaxis = list(title = "Percentage"),
+         margin = list(b = 100),
+         barmode = 'group')
+
+fig
+```
+
 
