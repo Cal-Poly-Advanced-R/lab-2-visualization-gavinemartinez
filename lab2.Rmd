@@ -210,34 +210,35 @@ countries <- c("United States", "Egypt", "Morocco", "Lebanon", "Saudi Arabia", "
 
 data_og <- read_xlsx("wgm_data2018.xlsx", sheet = 2) #renamed data set in my files
 
-#Question 1: In general, do you think the work that scientists do benefits people like you in this country?
-#Question 2: Overall, do you think that science and technology will help improve life for the next generation?
+#Question 1: In general, do you think the work that scientists do benefits most, some, or very few people in this country?
+#Question 2: In general, do you think the work that scientists do benefits people like you in this country?
 
 data_clean <- data_og |> #Changing the Q1 and Q2 values
-  select(WP5, Q18, Q19) |>
-  mutate(Q18 = case_when(
-    Q18 == 1 ~ "Yes",
-    Q18 == 2 ~ "No",
-    Q18 == 98 ~ "DK",
-    Q18 == 99 ~ "R")
+  select(WP5, Q16, Q17) |>
+  mutate(Q16 = case_when(
+    Q16 == 1 ~ "Most",
+    Q16 == 2 ~ "Some",
+    Q16 == 3 ~ "Very Few",
+    Q16 == 98 ~ "DK",
+    Q16 == 99 ~ "R")
     ) |>
-  mutate(Q19 = case_when(
-    Q19 == 1 ~ "Yes",
-    Q19 == 2 ~ "No",
-    Q19 == 98 ~ "DK",
-    Q19 == 99 ~ "R")
+  mutate(Q17 = case_when(
+    Q17 == 1 ~ "Yes",
+    Q17 == 2 ~ "No",
+    Q17 == 98 ~ "DK",
+    Q17 == 99 ~ "R")
     ) |>
-  filter(Q18 %in% c("Yes", "No"),
-         Q19 %in% c("Yes", "No")) |>
-  rename("Country" = WP5, "Q1" = Q18, "Q2" = Q19) |>
+  filter(Q16 %in% c("Most", "Some", "Very Few"),
+         Q17 %in% c("Yes", "No")) |>
+  rename("Country" = WP5, "Q1" = Q16, "Q2" = Q17) |>
   mutate(`Country` = countries[`Country`])
 
 data_clean <- data_clean |> #importing country names and adding the combo column, case_when() wasn't working, sorry for ifelse spam
-  mutate (Combo = ifelse(`Q1` %in% "Yes" & `Q2` %in% "Yes", "Benefits People Like Respondant and ", 99),
-          Combo = ifelse(`Q1` %in% "Yes" & `Q2` %in% "No", 2, Combo),
-          Combo = ifelse(`Q1` %in% "No" & `Q2` %in% "Yes", 3, Combo),
-          Combo = ifelse(`Q1` %in% "No" & `Q2` %in% "No", 4, Combo))
-
+  mutate (Combo = ifelse(`Q1` %in% "Most" & `Q2` %in% "Yes", "Benefits Them & Most", NA),
+          Combo = ifelse(`Q1` %in% "Very Few" & `Q2` %in% "Yes", "Benefits Them But Not Most", Combo),
+          Combo = ifelse((`Q1` %in% "Some" | `Q1` %in% "Most") & `Q2` %in% "No", "Doesn't Benefit Them But Benefits Most", Combo),
+          Combo = ifelse(`Q1` %in% "Very Few" & `Q2` %in% "No", "Doesn't Benefit Them Nor Most", Combo)) |>
+  na.omit()
 ```
 
 ```{r Applying Geocode to each country}
@@ -245,11 +246,33 @@ data_clean_geo <- data_clean |> #Getting Geocode data for each country
   geocode(country = `Country`)
 ```
 
-```{r Leaflet Map} 
-data_clean <- data_clean_geo |> #to limit the number of obs during testing of leaflet
-  distinct(Country, Combo, long, lat)
-
-leaflet() |> 
+```{r Leaflet Map}
+leaflet() |>
   addTiles() |>
-  addCircles(lng = data_clean$long, lat = data_clean$lat, radius = 10, popup = data_clean$Combo)
+  addCircles(lng = data_clean$long, 
+             lat = data_clean$lat, 
+             radius = length(data_clean$Combo[data_clean$Combo %in% "Benefits Them & Most"]),
+             popup = data_clean$Combo[data_clean$Combo %in% "Benefits Them & Most"], 
+             color = "#FFCD27", 
+             opacity = .5) |>
+  addCircles(lng = data_clean$long, 
+             lat = data_clean$lat, 
+             radius = length(data_clean$Combo[data_clean$Combo %in% "Benefits Them But Not Most"]),
+             popup = data_clean$Combo[data_clean$Combo %in% "Benefits Them But Not Most"], 
+             color = "#61933F", 
+             opacity = .5) |>
+  addCircles(lng = data_clean$long, 
+             lat = data_clean$lat, 
+             radius = length(data_clean$Combo[data_clean$Combo %in% "Doesn't Benefit Them But Benefits Most"]),
+             popup = data_clean$Combo[data_clean$Combo %in% "Doesn't Benefit Them But Benefits Most"], 
+             color = "#2FC1D2",
+             opacity = .5) |>
+  addCircles(lng = data_clean$long, 
+             lat = data_clean$lat, 
+             radius = length(data_clean$Combo[data_clean$Combo %in% "Doesn't Benefit Them Nor Most"]) ,
+             popup = data_clean$Combo[data_clean$Combo %in% "Doesn't Benefit Them Nor Most"], 
+             color = "#003D57", 
+             opacity = .5) |>
+  addLegend(position = "topright", title = "The combined view of how people feel about the benefits
+of science on a personal and country level per country", labels = c("Benefits Them & Most", "Benefits Them But Not Most", "Doesn't Benefit Them But Benefits Most", "Doesn't Benefit Them Nor Most"), colors = c("#FFCD27", "#61933F", "#2FC1D2", "#003D57"))
 ```
