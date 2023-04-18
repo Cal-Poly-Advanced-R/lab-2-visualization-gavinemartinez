@@ -1,6 +1,82 @@
 ---
 title: "lab2"
-author: "Gavin Martinez"
+author: "Gavin Martinez, Brandon Kim"
 date: "2023-04-13"
 output: html_document
 ---
+
+**1. While there are certainly issues with this image, do your best to tell the story of this graph in words. That is, what is this graph telling you? What do you think the authors meant to convey with it?**
+
+The graph seems to show a plot of proportions of people who believe vaccines are safe per country. And each the plot seems to be separated by region, with certain countries being labeled. For each plot, there is a line within the plots, showing the median per each region. 
+
+**2. List the variables that appear to be displayed in this visualization.**
+
+The variables in this visualization are countries, region of that country, and % of people who believe vaccines are safe per country.
+
+**3. Now that you're versed in the grammar of graphics (ggplot), list the aesthetics used and which variables are specified for each.**
+
+The different regions are separated by the color of the points. Some of the countries are labeled. And the median of % of people who believe vaccines are safe per region is represented by a line within the plots.  
+
+**4.  What type of graph would you call this?**
+
+This wouldn't really be a scatter plot, as scatter plots take quantitative variables for both x and y. I would call this a segmented bar plot with points instead of bars. Each point represents a quantitative value for each country, which is what a bar plot should do. An argument could also be made that this visualization is multiple box plots, where we are creating box plots for each region. As the median is represented like a boxplot, and we have a decent tell of the spread. The only issue is, there are no boxes.  
+
+**5.  List all of the problems or things you would improve about this graph.**
+
+* No need for axis labels on both the top and bottom.
+* y-axis really doesn't represent anything, so there's no need for increasing heights within each region.
+* Really weird choice of graph in general. Something like this would be better represented by a box plot.
+* Double labeling of colors; no need of a legend.
+* Grid lines look off. They should be connecting between each section.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+```{r libaries}
+library(tidyverse)
+library(readxl)
+library(ggthemes)
+```
+
+```{r readxl}
+df_world <- read_excel(here::here("wgm2018-dataset-crosstabs-all-countries.xlsx"), sheet = 2)
+```
+
+```{r head}
+head(df_world)
+```
+
+```{r dplyr}
+plt <- df_world %>%
+  filter(Q23 == 1) %>%
+  group_by(WP5) %>%
+  summarize(vacc_agree = sum(Q25 %in% c(1, 2)), 
+            total = n(), 
+            Regions_Report) %>%
+  filter(row_number() == 1,
+         Regions_Report != 0) %>%
+  mutate(prop = vacc_agree/total * 100,
+         region = case_when(
+           Regions_Report %in% c(1, 2, 4, 5) ~ "Sub-Saharan Africa", 
+           Regions_Report %in% c(6:8) ~ "Americas",
+           Regions_Report %in% c(9:12) ~ "Asia",
+           Regions_Report %in% c(3, 13) ~ "Middle East and North Africa",
+           Regions_Report %in% c(14:18) ~ "Europe and Oceania")
+         )
+```
+
+```{r ggplot}
+ggplot(plt, aes(x = prop, y = region, fill = region)) +
+  geom_boxplot() +
+  geom_text(subset(plt, WP5 == 29), 
+            mapping = aes(label = "Japan"),
+            vjust = 2,
+            size = 3) +
+  labs(title = "Boxplots of % of people who believe \nvaccines are safe, \nby global region",
+       x = "Percentages",
+       y = "") +
+  theme_economist() +
+  theme(legend.position = "none") 
+```
+
